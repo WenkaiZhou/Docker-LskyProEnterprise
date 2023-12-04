@@ -1,7 +1,7 @@
 # Docker-LskyProEnterprise
 兰空图床企业版Dockerfile
 
-> 之前搭建博客图床使用的[LskyPro](https://github.com/lskypro/lsky-pro)图床，发现已经有了企业版，本着支持一波儿的态度，发现没有Dockerfile，于是自己动手写了一个。面向小白，大佬勿喷。
+> 之前搭建博客图床使用的[LskyPro](https://github.com/lsky-org/lsky-pro)图床，发现已经有了企业版，本着支持一波儿的态度，发现没有Dockerfile，于是自己动手写了一个。面向小白，大佬勿喷。
 
 ## 背景交代
 
