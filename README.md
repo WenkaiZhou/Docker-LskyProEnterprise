@@ -9,11 +9,11 @@
 
 ## 步骤
 
-1. 在官方下载企业版压缩包，直接放在代码目录下；
+1. 在官方下载企业版压缩包，重命名为`lsky-pro.zip`放在代码目录下；
 2. 构建镜像
 
 ```Shell
-docker build -t lsky:v1.5.1 .
+docker build -t lsky-pro:v1.5.1 .
 ```
 3. 创建容器
 
