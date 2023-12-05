@@ -23,6 +23,7 @@ fi
 redis-server &
 # 后台运行apatch
 apachectl -D FOREGROUND
-php artisan queue:work --queue=emails,images,thumbnails
+# 配置队列处理进程
+nohup php artisan queue:work --queue=emails,images,thumbnails &
 
 exec "$@"
