@@ -22,6 +22,9 @@ RUN apt-get update \
     # 安装并启用bcmath扩展
     && docker-php-ext-install bcmath \
     && docker-php-ext-enable bcmath \
+    # 安装并启用pdo_mysql
+    && docker-php-ext-install pdo_mysql \
+    && docker-php-ext-enable pdo_mysql \
     # 删除临时文件
     && rm -rf /tmp/pear \
     # 启用Apache的mod_rewrite模块
