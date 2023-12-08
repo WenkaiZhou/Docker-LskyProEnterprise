@@ -11,6 +11,7 @@ RUN apt-get update \
     && apt-get install -y \
         gettext \
         unzip \
+        supervisor \
     # 安装并启用redis扩展
     && apt-get install -y redis-server \
     && pecl install -o -f redis \
@@ -57,6 +58,7 @@ RUN unzip lsky-pro.zip \
 
 COPY ./000-default.conf.template /etc/apache2/sites-enabled/
 COPY ./ports.conf.template /etc/apache2/
+COPY ./lsky-pro-worker.conf /etc/supervisor/conf.d/
 COPY entrypoint.sh /
 WORKDIR /var/www/html/
 VOLUME /var/www/html

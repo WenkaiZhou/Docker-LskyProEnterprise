@@ -15,15 +15,19 @@ if [ ! -e '/var/www/html/public/index.php' ]; then
     sed -i 's!APP_SERIAL_NO=.*$!APP_SERIAL_NO='${APP_SERIAL_NO}'!g' ${ENV_EXAMPLE}
     sed -i 's!APP_SECRET=.*$!APP_SECRET='${APP_SECRET}'!g' ${ENV_EXAMPLE}
 fi
-    chown -R www-data /var/www/html
-    chgrp -R www-data /var/www/html
-    chmod -R 755 /var/www/html/
+
+chown -R www-data /var/www/html
+chgrp -R www-data /var/www/html
+chmod -R 755 /var/www/html/
 
 # 后台运行redis
 redis-server &
 # 后台运行apatch
 apachectl -D FOREGROUND
 # 配置队列处理进程
-nohup php artisan queue:work --queue=emails,images,thumbnails &
+service supervisor start
+supervisorctl reread
+supervisorctl update
+supervisorctl start lsky-pro-worker:*
 
 exec "$@"
