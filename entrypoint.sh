@@ -22,12 +22,12 @@ chmod -R 755 /var/www/html/
 
 # 后台运行redis
 redis-server &
-# 后台运行apatch
-apachectl -D FOREGROUND
 # 配置队列处理进程
 service supervisor start
 supervisorctl reread
 supervisorctl update
 supervisorctl start lsky-pro-worker:*
+# 后台运行apatch
+apachectl -D FOREGROUND
 
 exec "$@"
