@@ -13,7 +13,7 @@
 2. 构建镜像
 
 ```Shell
-docker build -t lsky-pro:v1.5.1 .
+docker build -t lsky-pro:1.5.1 .
 ```
 3. 创建容器
 
@@ -26,6 +26,6 @@ docker run -d \
 	-e APP_SECRET=你的许可证密钥 \
 	-e APP_URL=你的站点域名 \
     -v /docker/lsky-pro:/var/www/html \
-    lsky-pro:v1.5.1
+    lsky-pro:1.5.1
 ```
 4. 访问站点，在管理后台进行设置。

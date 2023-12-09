@@ -1,68 +1,79 @@
-FROM php:8.1-apache
-WORKDIR /build
+ARG ALPINE_VERSION=3.18
+FROM alpine:${ALPINE_VERSION}
+LABEL Maintainer="WenkaiZhou <zwenkai@foxmail.com>"
+LABEL Description="Lightweight LskyPro container with Nginx 1.24 & PHP-FPM 8.2 based on Alpine Linux."
 
-ENV TZ=Asia/Shanghai
-ENV APP_SERIAL_NO=""
-ENV APP_SECRET=""
-ENV APP_URL=""
+# Ensure www-data user exists
+RUN set -x ; \
+  addgroup -g 82 -S www-data ; \
+  adduser -u 82 -D -S -G www-data www-data && exit 0 ; exit 1
 
-# 安装依赖和相关拓展
-RUN apt-get update \
-    && apt-get install -y \
-        gettext \
-        unzip \
-        supervisor \
-    # 安装并启用redis扩展
-    && apt-get install -y redis-server \
-    && pecl install -o -f redis \
-    && docker-php-ext-enable redis \
-    # 安装并启用imagick扩展
-    && apt-get install -y imagemagick libmagickwand-dev \
-    && pecl install imagick \
-    && docker-php-ext-enable imagick \
-    # 安装并启用bcmath扩展
-    && docker-php-ext-install bcmath \
-    && docker-php-ext-enable bcmath \
-    # 安装并启用pdo_mysql
-    && docker-php-ext-install pdo_mysql \
-    && docker-php-ext-enable pdo_mysql \
-    # 删除临时文件
-    && rm -rf /tmp/pear \
-    # 启用Apache的mod_rewrite模块
-    && a2enmod rewrite
+# Install packages and remove default server definition
+RUN apk add --no-cache \
+  bash \
+  curl \
+  nginx \
+  redis \
+  php82 \
+  php82-ctype \
+  php82-curl \
+  php82-dom \
+  php82-fileinfo \
+  php82-fpm \
+  php82-gd \
+  php82-intl \
+  php82-mbstring \
+  php82-mysqli \
+  php82-pdo \
+  php82-pdo_mysql \
+  php82-opcache \
+  php82-openssl \
+  php82-phar \
+  php82-session \
+  php82-tokenizer \
+  php82-xml \
+  php82-xmlreader \
+  php82-xmlwriter \
+  php82-bcmath \
+  php82-pecl-redis \
+  php82-pecl-imagick \
+  supervisor
 
-RUN { \
-    echo 'post_max_size = 100M;';\
-    echo 'upload_max_filesize = 100M;';\
-    echo 'max_execution_time = 600S;';\
-    } > /usr/local/etc/php/conf.d/docker-php-upload.ini;
+# Configure nginx
+COPY config/nginx.conf /etc/nginx/nginx.conf
 
-RUN { \
-    echo 'opcache.enable=1'; \
-    echo 'opcache.interned_strings_buffer=8'; \
-    echo 'opcache.max_accelerated_files=10000'; \
-    echo 'opcache.memory_consumption=128'; \
-    echo 'opcache.save_comments=1'; \
-    echo 'opcache.revalidate_freq=1'; \
-    } > /usr/local/etc/php/conf.d/opcache-recommended.ini; \
-    echo 'apc.enable_cli=1' >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini; \
-    echo 'memory_limit=512M' > /usr/local/etc/php/conf.d/memory-limit.ini;
+# Configure PHP-FPM
+ENV PHP_INI_DIR /etc/php82
+COPY config/fpm-pool.conf ${PHP_INI_DIR}/php-fpm.d/www.conf
+COPY config/php.ini ${PHP_INI_DIR}/conf.d/custom.ini
+
+# Configure supervisord
+COPY config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Create symlink for php
+RUN ln -s /usr/bin/php82 /usr/bin/php
+
+# LskyPro volume
+VOLUME /var/www/html
+WORKDIR /var/www/html
+RUN chown -R www-data:www-data /var/www
+
+# LskyPro
+RUN mkdir -p /usr/src
 
 COPY lsky-pro.zip .
-RUN unzip lsky-pro.zip \
+RUN unzip lsky-pro.zip -d /usr/src/lsky-pro \
     && rm -rf lsky-pro.zip \
-    && mkdir /var/www/data \
-    && chown -R www-data:root /var/www \
-    && chmod -R g=u /var/www \
-    && mv /build /var/www/lsky/
+    && chown -R www-data:www-data /usr/src/lsky-pro
 
-COPY ./000-default.conf.template /etc/apache2/sites-enabled/
-COPY ./ports.conf.template /etc/apache2/
-COPY ./lsky-pro-worker.conf /etc/supervisor/conf.d/
+# Entrypoint to copy lsky-pro
 COPY entrypoint.sh /
-WORKDIR /var/www/html/
-VOLUME /var/www/html
-ENV WEB_PORT 80
-EXPOSE ${WEB_PORT}
 RUN chmod a+x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
+
+EXPOSE 80
+
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+
+# Configure a healthcheck to validate that everything is up&running
+HEALTHCHECK --timeout=10s CMD curl --silent --fail http://127.0.0.1:9000/fpm-ping
