@@ -1,0 +1,41 @@
+version: "3.5"
+
+services:
+  db:
+    image: mysql:5.7.9
+    volumes:
+      - "/docker/lsky-pro/db-data:/var/lib/mysql"
+    environment:
+      MYSQL_ROOT_PASSWORD: lsky-pro
+      MYSQL_DATABASE: lsky-pro
+      MYSQL_USER: lsky-pro
+      MYSQL_PASSWORD: lsky-pro
+
+  lsky-pro:
+    depends_on:
+      - db
+    build: ./
+    volumes:
+      - "/docker/lsky-pro/site-data:/var/www/html"
+    ports:
+      - "80:80"
+    environment:
+      DB_HOST: db
+      DB_PASSWORD: lsky-pro
+      DB_NAME: lsky-pro
+      DB_USER: lsky-pro
+      APP_SERIAL_NO: YOUR_SERIAL_NO
+      APP_SECRET: YOUR_SECRET
+      APP_URL: YOUR_WEB_UEL
+
+volumes:
+  db-data:
+  site-data:
+
+networks:
+  default:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.91.0/24
