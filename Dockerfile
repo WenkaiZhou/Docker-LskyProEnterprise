@@ -71,6 +71,12 @@ COPY entrypoint.sh /
 RUN chmod a+x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
+# Make sure files/folders needed by the processes are accessable when they run under the www-data user
+RUN chown -R www-data:www-data /var/www/html /run /var/lib/nginx /var/log/nginx
+
+# Switch to use a non-root user from here on
+USER www-data
+
 EXPOSE 80
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
