@@ -37,6 +37,7 @@ RUN apk add --no-cache \
   php82-bcmath \
   php82-pecl-redis \
   php82-pecl-imagick \
+  php82-zip \
   supervisor
 
 # Configure nginx
